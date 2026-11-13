@@ -137,6 +137,17 @@ export async function currentUser(req: Request): Promise<User | null> {
   return recordset[0] ? toUser(recordset[0]) : null;
 }
 
+/** Middleware: any signed-in user (admin or staff) may continue. 401 when signed out. */
+export async function requireSignedIn(req: Request, res: Response, next: NextFunction) {
+  const user = await currentUser(req);
+  if (!user) {
+    res.status(401).json({ error: 'Sign in to view this page' });
+    return;
+  }
+  res.locals.user = user;
+  next();
+}
+
 /** Middleware: only signed-in admins may continue. 401 when signed out, 403 for other roles. */
 export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const user = await currentUser(req);

@@ -13,8 +13,11 @@ import {
   passwordProblem,
   recordLoginResult,
   requireAdmin,
+  requireSignedIn,
   resetPassword,
 } from './auth.ts';
+import { CHAT_MESSAGE_MAX_LENGTH, chat, chatEnabled, chatThrottle } from './chat.ts';
+import { inventoryStats } from './stats.ts';
 import { addComment, commentProblem, deleteComment, listComments } from './comments.ts';
 import {
   checkResetLink,
@@ -334,6 +337,54 @@ app.delete('/api/vehicles/:id/comments/:commentId', requireAdmin, async (req, re
     return;
   }
   res.status(204).end();
+});
+
+// --- Dashboard (any signed-in user) -----------------------------------------------------------
+
+app.get('/api/stats/inventory', requireSignedIn, async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(await inventoryStats());
+});
+
+// --- Customer chat (public; answered by the Foundry agent) -------------------------------------
+
+app.get('/api/chat/status', (_req, res) => {
+  res.json({ enabled: chatEnabled() });
+});
+
+// Body: { message, conversationId? }. Returns { conversationId, reply, vehicles }.
+app.post('/api/chat', async (req, res) => {
+  if (!chatEnabled()) {
+    res.status(503).json({ error: 'The assistant is not configured' });
+    return;
+  }
+  const { message, conversationId } = (req.body ?? {}) as { message?: unknown; conversationId?: unknown };
+  if (typeof message !== 'string' || !message.trim()) {
+    res.status(400).json({ error: 'Type a message' });
+    return;
+  }
+  if (message.length > CHAT_MESSAGE_MAX_LENGTH) {
+    res.status(400).json({ error: `Keep messages under ${CHAT_MESSAGE_MAX_LENGTH} characters` });
+    return;
+  }
+  const wait = chatThrottle(req);
+  if (wait > 0) {
+    res.status(429).setHeader('Retry-After', String(wait));
+    res.json({ error: 'You are sending messages too quickly. Please wait a minute and try again.' });
+    return;
+  }
+  try {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(await chat(conversationId, message.trim()));
+  } catch (err) {
+    // Azure's content filter rejected the message (e.g. a jailbreak attempt): not an outage.
+    if ((err as { code?: unknown }).code === 'content_filter') {
+      res.status(400).json({ error: "Sorry, I can't help with that. Try asking about our vehicles, prices or availability." });
+      return;
+    }
+    console.error('Chat failed:', err);
+    res.status(502).json({ error: 'The assistant is unavailable right now. Please try again shortly.' });
+  }
 });
 
 app.use('/api', (_req, res) => {

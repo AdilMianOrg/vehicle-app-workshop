@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Category, ResetRequest, UserSummary, Vehicle, VehicleComment } from './types';
+import type { Category, ChatReply, InventoryStats, ResetRequest, UserSummary, Vehicle, VehicleComment } from './types';
 import type { FieldErrors, VehicleInput } from './validation';
 
 // Inventory is served by the Express API in `server/`, backed by SQL Server.
@@ -175,4 +175,22 @@ export async function createResetLink(userId: string): Promise<{ url: string; us
   );
   // The token goes in the #fragment, which browsers never send to the server or in Referer headers.
   return { url: `${window.location.origin}/reset-password#${link.token}`, username: link.username, expiresAt: link.expiresAt };
+}
+
+// --- Dashboard (signed-in users) ---------------------------------------------------------------
+
+export function fetchInventoryStats(signal?: AbortSignal): Promise<InventoryStats> {
+  return getJson<InventoryStats>('/api/stats/inventory', signal);
+}
+
+// --- Customer chat -----------------------------------------------------------------------------
+
+/** Whether the server has a Foundry agent configured; the chat widget stays hidden otherwise. */
+export async function fetchChatEnabled(signal?: AbortSignal): Promise<boolean> {
+  return (await getJson<{ enabled: boolean }>('/api/chat/status', signal)).enabled;
+}
+
+/** Sends one message. Omit `conversationId` (or pass an expired one) to start a new conversation. */
+export function sendChatMessage(message: string, conversationId?: string): Promise<ChatReply> {
+  return postJson<ChatReply>('/api/chat', { message, conversationId });
 }

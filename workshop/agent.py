@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-agent_name = "vehicle-agent"
+agent_name = "vehicle-new-agent-gpt-mini"
 
 with (
     DefaultAzureCredential() as credential,

@@ -8,12 +8,16 @@
     "dev:api": "node --env-file-if-exists=.env server/dev.ts",
     "db:setup": "node --env-file-if-exists=.env server/db/setup.ts",
     "user": "node --env-file-if-exists=.env server/db/user.ts",
+    "agent:setup": "node --env-file-if-exists=.env server/agentSetup.ts",
     "build": "tsc -b && vite build",
     "start": "node --env-file-if-exists=.env server/index.ts",
     "lint": "oxlint",
+    "test": "node --test server/",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/ai-projects": "^2.11.0",
+    "@azure/identity": "^4.14.1",
     "express": "^5.3.0",
     "mssql": "^12.7.14",
     "react": "^19.3.1",

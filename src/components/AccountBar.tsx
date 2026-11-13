@@ -47,6 +47,11 @@ export function AccountBar() {
           {auth.isAdmin ? 'Admin' : 'View only'}
         </span>
       </span>
+      {location.pathname !== '/dashboard' && (
+        <Link to="/dashboard" className="account-link">
+          Dashboard
+        </Link>
+      )}
       {auth.isAdmin && location.pathname !== '/account/password' && (
         <Link
           to="/account/password"

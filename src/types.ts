@@ -56,6 +56,45 @@ export interface VehicleComment {
 
 export const COMMENT_MAX_LENGTH = 2000;
 
+/** Aggregates for one slice of the inventory (a category, or everything). */
+export interface InventoryFigures {
+  count: number;
+  byCondition: Record<Condition, number>;
+  /** Sum of asking prices, USD. */
+  totalValue: number;
+  /** Averages are null when the slice is empty. */
+  avgPrice: number | null;
+  avgMileage: number | null;
+  avgYear: number | null;
+}
+
+/** `GET /api/stats/inventory`: totals plus one entry per category (every category, even empty ones). */
+export interface InventoryStats {
+  total: InventoryFigures;
+  categories: ({ category: Category } & InventoryFigures)[];
+  /** ISO 8601, UTC: when the figures were computed. */
+  generatedAt: string;
+}
+
+/** A vehicle the chat assistant found, shown as a link under its reply. */
+export interface ChatVehicle {
+  id: string;
+  name: string;
+  model: string;
+  year: number;
+  price: number;
+  category: Category;
+  condition: Condition;
+  mileage: number;
+}
+
+/** `POST /api/chat` response. */
+export interface ChatReply {
+  conversationId: string;
+  reply: string;
+  vehicles: ChatVehicle[];
+}
+
 /** A "forgot password" request waiting for an admin. */
 export interface ResetRequest {
   userId: string;
