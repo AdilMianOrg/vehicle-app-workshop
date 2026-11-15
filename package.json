@@ -7,6 +7,7 @@
     "dev": "vite",
     "dev:api": "node --env-file-if-exists=.env server/dev.ts",
     "db:setup": "node --env-file-if-exists=.env server/db/setup.ts",
+    "db:photos": "node --env-file-if-exists=.env server/db/photos.ts",
     "user": "node --env-file-if-exists=.env server/db/user.ts",
     "agent:setup": "node --env-file-if-exists=.env server/agentSetup.ts",
     "build": "tsc -b && vite build",
