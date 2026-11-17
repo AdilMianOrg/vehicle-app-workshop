@@ -39,7 +39,7 @@ export function InventoryPage() {
   const remote = useRemote('all', (signal) => fetchVehicles({}, signal));
 
   useEffect(() => {
-    document.title = 'Vehicle Inventory';
+    document.title = 'ONE-STOP VEHICLE SHOP DEALERSHIP';
   }, []);
 
   return remote.status === 'ready' ? (
@@ -50,7 +50,7 @@ export function InventoryPage() {
         <div className="brand">
           <span className="logo" aria-hidden>◆</span>
           <div>
-            <h1>Vehicle Inventory</h1>
+            <h1>ONE-STOP VEHICLE SHOP DEALERSHIP</h1>
             <p>Dealership stock available for sale</p>
           </div>
         </div>
@@ -159,7 +159,7 @@ function Inventory({ vehicles }: { vehicles: Vehicle[] }) {
         <div className="brand">
           <span className="logo" aria-hidden>◆</span>
           <div>
-            <h1>Vehicle Inventory</h1>
+            <h1>ONE-STOP VEHICLE SHOP DEALERSHIP</h1>
             <p>Dealership stock available for sale</p>
           </div>
         </div>

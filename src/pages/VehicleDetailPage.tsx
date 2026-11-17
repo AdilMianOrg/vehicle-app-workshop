@@ -36,8 +36,8 @@ export function VehicleDetailPage() {
   useEffect(() => {
     if (pending) return;
     document.title = vehicle
-      ? `${vehicle.year} ${vehicle.name} ${vehicle.model} | Vehicle Inventory`
-      : 'Vehicle not found | Vehicle Inventory';
+      ? `${vehicle.year} ${vehicle.name} ${vehicle.model} | ONE-STOP VEHICLE SHOP DEALERSHIP`
+      : 'Vehicle not found | ONE-STOP VEHICLE SHOP DEALERSHIP';
   }, [vehicle, pending]);
 
   if (pending) {
