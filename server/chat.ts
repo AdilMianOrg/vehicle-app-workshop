@@ -71,7 +71,8 @@ export function chatThrottle(req: Request): number {
 
 // --- One customer message → one reply -----------------------------------------------------------
 
-export async function chat(conversationId: unknown, message: string): Promise<ChatReply> {
+/** `clientKey` identifies the customer (their IP) for the lead-submission rate limit. */
+export async function chat(conversationId: unknown, message: string, clientKey: string): Promise<ChatReply> {
   const conversation = await conversationFor(conversationId);
   let vehicles: ChatVehicle[] = [];
 
@@ -85,7 +86,7 @@ export async function chat(conversationId: unknown, message: string): Promise<Ch
     if (calls.length === 0) break;
     const outputs = [];
     for (const call of calls) {
-      const result = await runTool(call.name, call.arguments);
+      const result = await runTool(call.name, call.arguments, { clientKey });
       if (result.vehicles?.length) vehicles = result.vehicles; // show the latest search
       outputs.push({ type: 'function_call_output' as const, call_id: call.call_id, output: result.output });
     }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Vehicle } from '../src/types.ts';
-import { AGENT_TOOLS, inventorySummary, runTool, searchVehicles, toChatVehicle } from './agentTools.ts';
+import { AGENT_TOOLS, inventorySummary, leadFromToolArgs, runTool, searchVehicles, toChatVehicle } from './agentTools.ts';
 
 // Unit tests for the chat agent's tools. Pure functions only: no database or Foundry calls.
 // Run with `npm test`.
@@ -120,6 +120,35 @@ describe('runTool', () => {
     const r = await runTool('search_vehicles', '{not json');
     assert.match(r.output, /not valid JSON/);
     assert.equal(r.vehicles, undefined);
+  });
+});
+
+describe('create_lead', () => {
+  const ARGS = {
+    first_name: 'Ada', last_name: 'Lovelace', email: 'Ada@Example.com', mobile: '555 123 4567',
+    preferred_contact: 'Email', condition: 'New', urgency_days: 30, vehicle_id: null, message: null,
+    customer_agreed_to_contact: true,
+  };
+
+  it('maps the model\'s arguments onto the shared lead validation', () => {
+    const r = leadFromToolArgs(ARGS);
+    assert.ok(r.ok);
+    assert.equal(r.value.email, 'ada@example.com');
+    assert.equal(r.value.mobile, '5551234567');
+    assert.equal(r.value.interestCondition, 'New');
+    assert.equal(r.value.consent, true);
+  });
+
+  it('refuses without the customer\'s agreement, even for email', () => {
+    const r = leadFromToolArgs({ ...ARGS, customer_agreed_to_contact: false });
+    assert.ok(!r.ok && r.errors.consent);
+  });
+
+  it('returns field errors for invented or malformed details without touching the database', async () => {
+    const r = await runTool('create_lead', JSON.stringify({ ...ARGS, email: 'unknown', urgency_days: 0 }));
+    const out = JSON.parse(r.output) as { error?: string; fields?: Record<string, string> };
+    assert.ok(out.error);
+    assert.deepEqual(Object.keys(out.fields ?? {}).sort(), ['email', 'urgency_days']);
   });
 });
 
